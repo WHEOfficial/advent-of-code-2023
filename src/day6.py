@@ -1,6 +1,8 @@
+from math import ceil
 import numpy as np
 from lib import *
 
+# naive solution
 def part1(data):
     times, distances = \
         [int(i) for i in data[0].split()[1:]], \
@@ -17,8 +19,21 @@ def part1(data):
     
     return np.prod(win_times)
 
+# smart solution
 def part2(data):
-    pass
+    times, distances = \
+        data[0].split()[1:], \
+        data[1].split()[1:]
+    t_and_d = zip(times, distances)
+    time, distance = '', ''
+    for t, d in t_and_d:
+        time += t
+        distance += d
+    time, distance = int(time), int(distance)
+    coeff = [-1, time, -distance]
+    roots = sorted(np.roots(coeff))
+    
+    return ceil(roots[1]) - ceil(roots[0])
 
 def main():
     data = read_input(6)
