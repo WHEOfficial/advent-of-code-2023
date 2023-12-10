@@ -11,22 +11,29 @@ def naive_ass_solution(maps, seed):
                 break
     return current_value
 
-def source_to_dest_ranges(source_range, map_group):
+def seed_to_dest_ranges(seed_range, map_group):
+    normal_ranges = [seed_range]
     dest_ranges = []
     for m in map_group:
         dest, source, length = m
-        m_source_range = range(source, source + length)
-        m_dest_range = range(dest, dest + length)
-        #print(m_dest_range)
-        print(source_range, m_source_range.start, m_source_range.stop)
-        if m_source_range.start in source_range and \
-            m_source_range.stop in source_range:
-            dest_ranges.append(m_dest_range)
-        elif m_source_range.start in source_range:
-            dest_ranges.append(range(dest, source_range.stop))
-        elif m_source_range.stop in source_range:
-            dest_ranges.append(range(source_range.start,  dest + length))
-    return dest_ranges
+        source_range = range(source, source + length)
+        for i, n in enumerate(normal_ranges):
+            if source_range.start > n.start or \
+                source_range.stop < n.stop:
+                new_ranges = []
+                dest_range_start, dest_range_stop = dest + (n.start - source), dest + (n.stop - source)
+                if source_range.start > n.start:
+                    new_ranges.append(range(n.start, source_range.start))
+                    dest_range_start = dest
+                if source_range.stop < n.stop:
+                    new_ranges.append(range(source_range.stop, n.stop))
+                    dest_range_stop = dest + length
+                del normal_ranges[i]
+                normal_ranges += new_ranges
+                dest_ranges.append(range(dest_range_start, dest_range_stop))
+                break
+    return normal_ranges + dest_ranges
+
 
 def part1(data):
     seeds = [int(i) for i in data[0].split()[1:]]
@@ -69,39 +76,14 @@ def part2(data):
         seed_range = range(seed, seed + seed_length)
         seed_ranges.append(seed_range)
     
-    print(source_to_dest_ranges(range(100), maps[0]))
-    
-    # p = Pool()
-    # location_list = []
-    # for i, seed_range in enumerate(seed_ranges):
-    #     print(f"Starting range {i + 1}/{len(seed_ranges)} ({seed_range})")
-    #     answer = p.map(partial(naive_ass_solution, maps), seed_range)
-    #     location_list.append(min(answer))
-    #     print(f"Completed range {i + 1}/{len(seed_ranges)}")
-    # return min(location_list)
-    
-    # for i in range(0, len(seeds), 2):
-    #     seed, seed_length = seeds[i], seeds[i + 1]
-    #     seed_range = range(seed, seed + seed_length)
-    #     current_ranges = [seed_range]
-        
-        # for map_group in maps:
-        #     print(current_ranges)
-        #     new_ranges = []
-        #     for r in current_ranges:
-        #         num = r.start
-        #         while num < r.stop:
-        #             for m in map_group:
-        #                 dest, source, length = m
-        #                 source_range = range(source, source + length)
-        #                 if num in source_range:
-        #                     new_range = dest + (num - source)
-        #                     if (source + length) - 1 in r:
-        #                         new_range = range(new_range, source + length)
-        #                         new_ranges.append(new_range)
-        #                         num = source + length
-        #                         break
-        #                     else:
+    for seed_range in seed_ranges:
+        current_ranges = [seed_range]
+        for map_group in maps:
+            new_ranges = []
+            for r in current_ranges:
+                new_ranges += seed_to_dest_ranges(r, map_group)
+            print(new_ranges)
+            current_ranges = new_ranges
 
 
 def main():
